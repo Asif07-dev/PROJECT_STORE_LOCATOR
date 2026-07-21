@@ -1,0 +1,571 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find a Relipay Point | Relipay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --navy:#0F1B3D;
+    --navy-soft:#16255A;
+    --teal:#00C2A8;
+    --teal-deep:#059B85;
+    --amber:#FFB020;
+    --bg:#F5F7FB;
+    --panel:#FFFFFF;
+    --ink:#101425;
+    --slate:#5B6478;
+    --line:#E4E8F1;
+    --good:#1FAE6E;
+    --radius:14px;
+    --radius-sm:8px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--teal-deep); outline-offset:2px;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 28px;
+    background:var(--navy);
+    color:#fff;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(135deg,var(--teal),var(--teal-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk';font-weight:700;color:var(--navy);font-size:16px;
+    flex-shrink:0;
+  }
+  .brand-name{font-family:'Space Grotesk';font-weight:700;font-size:19px;letter-spacing:-0.01em;}
+  .brand-sub{font-size:11px;color:#9FB0D6;letter-spacing:.04em;text-transform:uppercase;margin-top:1px;}
+  .topbar-actions{display:flex;gap:10px;align-items:center;}
+  .btn{
+    border:none;border-radius:999px;
+    padding:9px 18px;font-size:13.5px;font-weight:600;
+    cursor:pointer;transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn-ghost{background:transparent;color:#EAF0FF;border:1px solid rgba(255,255,255,.25);}
+  .btn-ghost:hover{background:rgba(255,255,255,.08);}
+  .btn-primary{background:var(--teal);color:var(--navy);}
+  .btn-primary:hover{background:#0DD4B8;box-shadow:0 6px 18px rgba(0,194,168,.35);}
+  .hide-mobile{display:inline-flex;}
+
+  /* ---------- Hero / search ---------- */
+  .hero{
+    background:
+      radial-gradient(900px 260px at 8% -20%, rgba(0,194,168,.18), transparent 60%),
+      linear-gradient(180deg,var(--navy) 0%, var(--navy-soft) 100%);
+    color:#fff;
+    padding:44px 28px 30px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";position:absolute;right:-60px;top:-60px;width:280px;height:280px;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,176,32,.16), transparent 70%);
+  }
+  .hero-inner{max-width:1180px;margin:0 auto;position:relative;}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--teal);margin-bottom:14px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px rgba(0,194,168,.2);}
+  .hero h1{
+    font-size:clamp(28px,4vw,42px);font-weight:700;line-height:1.08;letter-spacing:-0.02em;
+    margin:0 0 10px;max-width:640px;
+  }
+  .hero p{color:#B7C2E0;font-size:15.5px;max-width:520px;margin:0 0 26px;line-height:1.55;}
+
+  .search-card{
+    background:var(--panel);
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow:0 20px 40px rgba(6,12,35,.28);
+    display:flex;gap:12px;flex-wrap:wrap;align-items:stretch;
+  }
+  .search-field{
+    flex:1 1 260px;
+    display:flex;align-items:center;gap:10px;
+    background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:0 14px;
+  }
+  .search-field svg{flex-shrink:0;color:var(--slate);}
+  .search-field input{
+    border:none;background:transparent;outline:none;
+    padding:14px 0;font-size:15px;color:var(--ink);width:100%;
+    font-family:'JetBrains Mono',monospace;letter-spacing:.02em;
+  }
+  .search-field input::placeholder{color:#9AA3B7;font-family:'Inter';}
+  .search-btn{
+    background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);
+    padding:0 26px;font-weight:600;font-size:14.5px;cursor:pointer;
+    display:flex;align-items:center;gap:8px;transition:background .15s;
+  }
+  .search-btn:hover{background:var(--navy-soft);}
+  .locate-link{
+    display:flex;align-items:center;gap:7px;
+    background:transparent;border:1px dashed rgba(255,255,255,.35);color:#EAF0FF;
+    border-radius:var(--radius-sm);padding:0 16px;font-size:13.5px;font-weight:600;cursor:pointer;
+  }
+  .locate-link:hover{border-color:var(--teal);color:var(--teal);}
+  .stat-row{display:flex;gap:26px;margin-top:20px;flex-wrap:wrap;}
+  .stat{}
+  .stat b{font-family:'Space Grotesk';font-size:20px;display:block;}
+  .stat span{color:#9FB0D6;font-size:12.5px;}
+
+  /* location permission banner (custom, not native) */
+  .geo-banner{
+    max-width:1180px;margin:16px auto 0;
+    background:#0C142C;border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--radius-sm);
+    padding:12px 16px;display:flex;align-items:center;gap:12px;
+    font-size:13.5px;color:#D7DFF3;
+  }
+  .geo-banner strong{color:#fff;}
+  .geo-banner .pulse{
+    width:10px;height:10px;border-radius:50%;background:var(--teal);flex-shrink:0;
+    box-shadow:0 0 0 0 rgba(0,194,168,.6);
+    animation:pulse 1.8s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(0,194,168,.55);}
+    70%{box-shadow:0 0 0 10px rgba(0,194,168,0);}
+    100%{box-shadow:0 0 0 0 rgba(0,194,168,0);}
+  }
+  .geo-banner .actions{margin-left:auto;display:flex;gap:8px;flex-shrink:0;}
+  .geo-banner button{
+    border:none;border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:600;cursor:pointer;
+  }
+  .geo-allow{background:var(--teal);color:var(--navy);}
+  .geo-deny{background:transparent;color:#B7C2E0;}
+
+  /* ---------- Main layout ---------- */
+  .layout{
+    max-width:1180px;margin:0 auto;
+    padding:26px 28px 60px;
+    display:grid;
+    grid-template-columns:minmax(340px,420px) 1fr;
+    gap:22px;
+    align-items:flex-start;
+  }
+  .panel-heading{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+  .panel-heading h2{font-size:18px;margin:0;}
+  .panel-heading .count{font-size:12.5px;color:var(--slate);font-family:'JetBrains Mono';}
+
+  .results{
+    display:flex;flex-direction:column;gap:12px;
+    max-height:calc(100vh - 160px);
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  .results::-webkit-scrollbar{width:6px;}
+  .results::-webkit-scrollbar-thumb{background:#D3DAE8;border-radius:6px;}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 16px 14px;
+    cursor:pointer;
+    transition:border-color .15s, box-shadow .15s, transform .15s;
+    position:relative;
+  }
+  .card:hover{border-color:#C7D6EE;box-shadow:0 8px 22px rgba(15,27,61,.08);}
+  .card.active{border-color:var(--teal-deep);box-shadow:0 0 0 3px rgba(0,194,168,.14);}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .card-index{
+    width:26px;height:26px;border-radius:8px;background:var(--navy);color:#fff;
+    font-family:'Space Grotesk';font-weight:700;font-size:12.5px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .card-title{flex:1;}
+  .card-title h3{font-size:15.5px;margin:0 0 2px;}
+  .card-title .retailer{font-size:13px;color:var(--slate);}
+  .distance-chip{
+    background:#EAFBF6;color:var(--teal-deep);
+    font-family:'JetBrains Mono';font-size:11.5px;font-weight:600;
+    padding:4px 9px;border-radius:999px;white-space:nowrap;flex-shrink:0;
+  }
+  .card-address{
+    display:flex;gap:8px;margin-top:10px;font-size:13px;color:var(--slate);line-height:1.45;
+  }
+  .card-address svg{flex-shrink:0;margin-top:2px;color:#A4AEC4;}
+  .card-phone{
+    display:flex;gap:8px;margin-top:8px;font-size:13px;color:var(--ink);align-items:center;
+  }
+  .card-phone svg{color:#A4AEC4;flex-shrink:0;}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+  .tag{
+    font-size:11px;font-weight:600;color:var(--navy-soft);background:#EEF1FA;
+    padding:4px 9px;border-radius:6px;
+  }
+  .tag.more{background:transparent;color:var(--slate);}
+  .card-actions{display:flex;gap:8px;margin-top:14px;}
+  .nav-btn{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:7px;
+    background:var(--navy);color:#fff;border:none;border-radius:var(--radius-sm);
+    padding:10px 0;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;
+    transition:background .15s;
+  }
+  .nav-btn:hover{background:var(--navy-soft);}
+  .call-btn{
+    display:flex;align-items:center;justify-content:center;
+    width:40px;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-sm);
+    color:var(--navy);text-decoration:none;
+  }
+  .call-btn:hover{border-color:var(--teal-deep);color:var(--teal-deep);}
+
+  .empty-state{
+    text-align:center;padding:40px 20px;color:var(--slate);font-size:13.5px;
+  }
+
+  /* ---------- Map ---------- */
+  .map-wrap{
+    position:sticky; top:20px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    height:calc(100vh - 160px);
+    min-height:420px;
+    display:flex;flex-direction:column;
+  }
+  #map{flex:1;width:100%;}
+  .leaflet-popup-content-wrapper{border-radius:10px;}
+  .leaflet-popup-content{font-family:'Inter';font-size:13px;margin:10px 12px;}
+  .popup-title{font-family:'Space Grotesk';font-weight:700;font-size:13.5px;margin-bottom:2px;}
+  .popup-sub{color:var(--slate);font-size:12px;}
+
+  .user-dot{
+    width:16px;height:16px;border-radius:50%;
+    background:var(--teal);border:3px solid #fff;box-shadow:0 0 0 4px rgba(0,194,168,.28);
+  }
+  .pin-icon{
+    width:30px;height:30px;border-radius:50% 50% 50% 0;
+    background:var(--navy);transform:rotate(-45deg);
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.25);
+  }
+  .pin-icon.active{background:var(--teal-deep);}
+  .pin-icon span{transform:rotate(45deg);color:#fff;font-family:'Space Grotesk';font-weight:700;font-size:11px;}
+
+  footer{
+    text-align:center;padding:22px;color:var(--slate);font-size:12.5px;border-top:1px solid var(--line);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px){
+    .layout{grid-template-columns:1fr;}
+    .map-wrap{position:relative;top:0;height:340px;min-height:280px;order:-1;}
+    .results{max-height:none;}
+    .hide-mobile{display:none;}
+  }
+  @media (max-width: 560px){
+    .topbar{padding:14px 16px;}
+    .hero{padding:30px 16px 22px;}
+    .layout{padding:18px 16px 44px;}
+    .search-card{padding:14px;}
+    .search-btn{padding:0 18px;}
+    .stat-row{gap:18px;}
+    .geo-banner{flex-wrap:wrap;margin:14px 16px 0;}
+    .geo-banner .actions{margin-left:0;width:100%;justify-content:flex-end;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">R</div>
+    <div>
+      <div class="brand-name">Relipay</div>
+      <div class="brand-sub">Retail Network</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost hide-mobile">Become a Retailer</button>
+    <button class="btn btn-primary">Login</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="dot"></span> Retail Locator</div>
+    <h1>Find your nearest Relipay point</h1>
+    <p>Search by PIN code or share your location to discover authorised Relipay retailers near you &mdash; for cash withdrawal, bill pay, AePS and more.</p>
+
+    <div class="search-card">
+      <div class="search-field">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="pinInput" type="text" inputmode="numeric" maxlength="6" placeholder="Enter PIN code, e.g. 251002">
+      </div>
+      <button class="search-btn" id="searchBtn">
+        Search
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+      <button class="locate-link" id="locateBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="6"/></svg>
+        Use my location
+      </button>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><b>5L+</b><span>Retail points across India</span></div>
+      <div class="stat"><b>700+</b><span>Districts covered</span></div>
+      <div class="stat"><b>24×7</b><span>Locator availability</span></div>
+    </div>
+  </div>
+
+  <div class="geo-banner" id="geoBanner" hidden>
+    <span class="pulse"></span>
+    <span><strong>www.relipay.in</strong> wants to know your location, to show retailers near you.</span>
+    <div class="actions">
+      <button class="geo-allow" id="geoAllow">Allow</button>
+      <button class="geo-deny" id="geoDeny">Not now</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="list-panel">
+    <div class="panel-heading">
+      <h2>Nearby retailers</h2>
+      <span class="count" id="resultCount">— results</span>
+    </div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <div class="map-wrap">
+    <div id="map"></div>
+  </div>
+</div>
+
+<footer>Relipay Retail Network &middot; Demo locator UI &middot; Map data © OpenStreetMap contributors</footer>
+
+<script>
+// ---------------------------------------------------------------
+// Mock retailer dataset (swap this for a real API response)
+// ---------------------------------------------------------------
+const RETAILERS = [
+  {
+    id:1, pin:"251002", shop:"ABAAN TRADERS", retailer:"Asif Ansari",
+    address:"Meenakshi Chowk, Muzaffarnagar, Uttar Pradesh 251002",
+    phone:"9711731931", lat:30.071402110411512, lng:77.74917709338075,
+    tags:["Savings A/c ReKYC","Atal Pension Yojna","Cash Withdrawal","AePS","UPI Cashwithdrawal","Mini Statement"]
+  },
+  {
+    id:2, pin:"249001", shop:"NEW TIHRI- CASHPOINT", retailer:"Pooja Baroli",
+    address:"8PX4+8QP, Unnamed Road, Kirtinagar, Raragar, Uttarakhand 249001",
+    phone:"8130552869", lat:30.38876693684093, lng:78.70936944558827,
+    tags:["CASA","LOAN Repayment","Gold Loan Referral","Bill Payments"]
+  },
+  {
+    id:3, pin:"711101", shop:"AVIROOP Telecom", retailer:"AVIROOP ROY",
+    address:"Kolkata, West Bengal 711101",
+    phone:"8100145801", lat:22.585553431421857, lng:88.34679312242561,
+    tags:["Mobile Recharge","Cash Withdrawal","DTH Recharge"]
+  },
+  {
+    id:4, pin:"110015", shop:"AYUSHI General Store", retailer:"AYUSHI GUPTA",
+    address:"Plot No 42, DLE Industrial Area, Kirti Nagar, New Delhi, Delhi, 110015",
+    phone:"9968558572", lat:28.655301445261465, lng:77.14378469863458,
+    tags:["Cash Withdrawal","AePS","Money Transfer"]
+  },
+{
+    id:2, pin:"249001", shop:"A CASHPOINT", retailer:"UK GROUP",
+    address:"8PX4+8QP, Unnamed Road, Kirtinagar, Raragar, Uttarakhand 249001",
+    phone:"8130552869", lat:30.38876693684093, lng:78.70936944558827,
+    tags:["CASA","LOAN Repayment","Gold Loan Referral","Bill Payments"]
+  },
+{
+    id:2, pin:"249001", shop:"B CASHPOINT", retailer:"AB GROUP",
+    address:"8PX4+8QP, Unnamed Road, Kirtinagar, Raragar, Uttarakhand 249001",
+    phone:"8130552869", lat:30.38876693684093, lng:78.70936944558827,
+    tags:["CASA","LOAN Repayment","Gold Loan Referral","Bill Payments"]
+{
+    id:2, pin:"249001", shop:"C CASHPOINT", retailer:"PAY GROUP",
+    address:"8PX4+8QP, Unnamed Road, Kirtinagar, Raragar, Uttarakhand 249001",
+    phone:"8130552869", lat:30.38876693684093, lng:78.70936944558827,
+    tags:["CASA","LOAN Repayment","Gold Loan Referral","Bill Payments"]
+  },
+
+  },
+
+  
+];
+
+let map, markers = {}, userMarker = null, userLoc = null, activeId = null;
+
+function initMap(center){
+  map = L.map('map', { zoomControl:true }).setView(center, 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+}
+
+function pinDivIcon(active){
+  return L.divIcon({
+    className:'',
+    html:`<div class="pin-icon${active?' active':''}"><span>R</span></div>`,
+    iconSize:[30,30], iconAnchor:[15,28], popupAnchor:[0,-26]
+  });
+}
+
+function haversine(a,b){
+  const R=6371, toRad = d=>d*Math.PI/180;
+  const dLat=toRad(b.lat-a.lat), dLng=toRad(b.lng-a.lng);
+  const s = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+
+function renderResults(list){
+  const wrap = document.getElementById('results');
+  const count = document.getElementById('resultCount');
+  wrap.innerHTML = '';
+  Object.values(markers).forEach(m => map.removeLayer(m));
+  markers = {};
+
+  if(!list.length){
+    count.textContent = '0 results';
+    wrap.innerHTML = `<div class="empty-state">No retailers found for this PIN code yet.<br>Try 251002, 251001 or 110001.</div>`;
+    return;
+  }
+
+  count.textContent = list.length + (list.length===1 ? ' result' : ' results');
+  const bounds = [];
+
+  list.forEach((r, i) => {
+    const distTxt = userLoc ? haversine(userLoc, r).toFixed(1)+' km' : null;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.id = r.id;
+    card.innerHTML = `
+      <div class="card-top">
+        <div style="display:flex;gap:10px;">
+          <div class="card-index">${i+1}</div>
+          <div class="card-title">
+            <h3>${r.shop}</h3>
+            <div class="retailer">${r.retailer}</div>
+          </div>
+        </div>
+        ${distTxt ? `<span class="distance-chip">${distTxt}</span>` : ''}
+      </div>
+      <div class="card-address">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>${r.address}</span>
+      </div>
+      <div class="card-phone">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
+        <span class="mono">${r.phone}</span>
+      </div>
+      <div class="tags">
+        ${r.tags.slice(0,2).map(t=>`<span class="tag">${t}</span>`).join('')}
+        ${r.tags.length>2 ? `<span class="tag more">+${r.tags.length-2} more</span>` : ''}
+      </div>
+      <div class="card-actions">
+        <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          Navigate
+        </a>
+        <a class="call-btn" href="tel:${r.phone}" title="Call ${r.retailer}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
+        </a>
+      </div>
+    `;
+    card.addEventListener('click', (e) => {
+      if(e.target.closest('a')) return;
+      setActive(r.id);
+      map.flyTo([r.lat,r.lng], 15, {duration:.6});
+      markers[r.id].openPopup();
+    });
+    wrap.appendChild(card);
+
+    const marker = L.marker([r.lat,r.lng], {icon:pinDivIcon(false)}).addTo(map);
+    marker.bindPopup(`<div class="popup-title">${r.shop}</div><div class="popup-sub">${r.retailer} &middot; ${distTxt ?? r.pin}</div>`);
+    marker.on('click', () => setActive(r.id));
+    markers[r.id] = marker;
+    bounds.push([r.lat,r.lng]);
+  });
+
+  if(userLoc) bounds.push([userLoc.lat, userLoc.lng]);
+  if(bounds.length) map.fitBounds(bounds, {padding:[40,40], maxZoom:15});
+}
+
+function setActive(id){
+  activeId = id;
+  document.querySelectorAll('.card').forEach(c => c.classList.toggle('active', +c.dataset.id === id));
+  Object.entries(markers).forEach(([mid, m]) => m.setIcon(pinDivIcon(+mid === id)));
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if(card) card.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function filterByPin(pin){
+  pin = pin.trim();
+  if(!pin){ renderResults(RETAILERS); return; }
+  const prefix = pin.slice(0,3);
+  const list = RETAILERS.filter(r => r.pin === pin || r.pin.startsWith(prefix));
+  renderResults(list.length ? list : []);
+}
+
+function placeUser(lat, lng){
+  userLoc = {lat, lng};
+  if(userMarker) map.removeLayer(userMarker);
+  userMarker = L.marker([lat,lng], {
+    icon: L.divIcon({className:'', html:'<div class="user-dot"></div>', iconSize:[16,16], iconAnchor:[8,8]})
+  }).addTo(map).bindPopup('You are here');
+}
+
+// ---------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------
+initMap([29.51, 77.68]);
+renderResults(RETAILERS);
+
+document.getElementById('searchBtn').addEventListener('click', () => filterByPin(document.getElementById('pinInput').value));
+document.getElementById('pinInput').addEventListener('keydown', e => { if(e.key === 'Enter') filterByPin(e.target.value); });
+
+const geoBanner = document.getElementById('geoBanner');
+document.getElementById('locateBtn').addEventListener('click', () => { geoBanner.hidden = false; });
+document.getElementById('geoDeny').addEventListener('click', () => { geoBanner.hidden = true; });
+document.getElementById('geoAllow').addEventListener('click', () => {
+  geoBanner.hidden = true;
+  if(!navigator.geolocation){ return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const {latitude, longitude} = pos.coords;
+      placeUser(latitude, longitude);
+      map.setView([latitude, longitude], 13);
+      const sorted = [...RETAILERS].sort((a,b) => haversine({lat:latitude,lng:longitude}, a) - haversine({lat:latitude,lng:longitude}, b));
+      renderResults(sorted.slice(0,6));
+    },
+    () => { /* silently ignore denial/timeout */ }
+  );
+});
+</script>
+</body>
+</html>
